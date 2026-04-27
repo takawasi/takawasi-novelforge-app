@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+            command: npm run dist:linux
+          - name: windows-x64
+            os: windows-latest
+            command: npm run dist:win
+          - name: mac-x64
+            os: macos-latest
+            command: npm run dist:mac -- --x64
+          - name: mac-arm64
+            os: macos-latest
+            command: npm run dist:mac -- --arm64
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: ${{ matrix.command }}
